@@ -8,6 +8,7 @@ import java.util.Optional;
 
 // Stub
 public class PostRepository {
+
     public List<Post> all() {
         return Collections.emptyList();
     }

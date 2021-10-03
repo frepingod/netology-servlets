@@ -2,25 +2,16 @@ package ru.netology.repository;
 
 import ru.netology.model.Post;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-// Stub
-public class PostRepository {
+public interface PostRepository {
 
-    public List<Post> all() {
-        return Collections.emptyList();
-    }
+    List<Post> all();
 
-    public Optional<Post> getById(long id) {
-        return Optional.empty();
-    }
+    Optional<Post> getById(long id);
 
-    public Post save(Post post) {
-        return post;
-    }
+    Post save(Post post);
 
-    public void removeById(long id) {
-    }
+    void removeById(long id);
 }

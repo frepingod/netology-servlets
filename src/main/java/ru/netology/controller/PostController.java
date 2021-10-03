@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.Reader;
 
 public class PostController {
+
     public static final String APPLICATION_JSON = "application/json";
+    private final Gson gson = new Gson();
     private final PostService service;
 
     public PostController(PostService service) {
@@ -17,25 +19,26 @@ public class PostController {
     }
 
     public void all(HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        final var data = service.all();
-        final var gson = new Gson();
-        response.getWriter().print(gson.toJson(data));
+        deserializeRequestAndSerializeResponse(response, service.all());
     }
 
-    public void getById(long id, HttpServletResponse response) {
-        // TODO: deserialize request & serialize response
+    public void getById(long id, HttpServletResponse response) throws IOException {
+        deserializeRequestAndSerializeResponse(response, service.getById(id));
     }
 
     public void save(Reader body, HttpServletResponse response) throws IOException {
-        response.setContentType(APPLICATION_JSON);
-        final var gson = new Gson();
-        final var post = gson.fromJson(body, Post.class);
-        final var data = service.save(post);
-        response.getWriter().print(gson.toJson(data));
+        final Post post = gson.fromJson(body, Post.class);
+        deserializeRequestAndSerializeResponse(response, service.save(post));
     }
 
-    public void removeById(long id, HttpServletResponse response) {
-        // TODO: deserialize request & serialize response
+    public void removeById(long id, HttpServletResponse response) throws IOException {
+        service.removeById(id);
+        deserializeRequestAndSerializeResponse(response, "post with id=" + id + " deleted successfully");
+    }
+
+    private <T> void deserializeRequestAndSerializeResponse(HttpServletResponse response, T data) throws IOException {
+        response.setContentType(APPLICATION_JSON);
+        String toJson = gson.toJson(data);
+        response.getWriter().print(toJson);
     }
 }

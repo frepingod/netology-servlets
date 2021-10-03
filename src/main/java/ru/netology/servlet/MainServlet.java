@@ -1,55 +1,72 @@
 package ru.netology.servlet;
 
+import ru.netology.Handler;
 import ru.netology.controller.PostController;
 import ru.netology.repository.PostRepository;
+import ru.netology.repository.PostRepositoryImpl;
 import ru.netology.service.PostService;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainServlet extends HttpServlet {
 
     private PostController controller;
 
+    private final Map<String, Map<String, Handler>> handlers = new ConcurrentHashMap<>();
+    private static final String PATH = "/api/posts";
+    private static final String PATH_WITH_PARAMS = "/api/posts/";
+
     @Override
     public void init() {
-        final var repository = new PostRepository();
-        final var service = new PostService(repository);
+        final PostRepository repository = new PostRepositoryImpl();
+        final PostService service = new PostService(repository);
         controller = new PostController(service);
+
+        addHandler("GET", PATH, (path, req, resp) -> controller.all(resp));
+        addHandler("GET", PATH_WITH_PARAMS, (path, req, resp) -> controller.getById(getIdByParsePath(path), resp));
+        addHandler("POST", PATH, (path, req, resp) -> controller.save(req.getReader(), resp));
+        addHandler("DELETE", PATH_WITH_PARAMS, (path, req, resp) -> controller.removeById(getIdByParsePath(path), resp));
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
         // если деплоились в root context, то достаточно этого
         try {
-            final var path = req.getRequestURI();
-            final var method = req.getMethod();
-            // primitive routing
-            if (method.equals("GET") && path.equals("/api/posts")) {
-                controller.all(resp);
-                return;
+            final String method = req.getMethod();
+            String path = req.getRequestURI();
+
+            String pathToFindTheHandler = path;
+            if (path.startsWith(PATH_WITH_PARAMS) && path.matches(PATH_WITH_PARAMS + "\\d+")) {
+                pathToFindTheHandler = PATH_WITH_PARAMS;
+            } else if (path.startsWith(PATH)) {
+                pathToFindTheHandler = PATH;
             }
-            if (method.equals("GET") && path.matches("/api/posts/\\d+")) {
-                // easy way
-                final var id = Long.parseLong(path.substring(path.lastIndexOf("/")));
-                controller.getById(id, resp);
-                return;
-            }
-            if (method.equals("POST") && path.equals("/api/posts")) {
-                controller.save(req.getReader(), resp);
-                return;
-            }
-            if (method.equals("DELETE") && path.matches("/api/posts/\\d+")) {
-                // easy way
-                final var id = Long.parseLong(path.substring(path.lastIndexOf("/")));
-                controller.removeById(id, resp);
-                return;
-            }
+
+            Handler handler = handlers.get(method).get(pathToFindTheHandler);
+            handler.handle(path, req, resp);
+
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private void addHandler(String method, String path, Handler handler) {
+        Map<String, Handler> map = new ConcurrentHashMap<>();
+        if (handlers.containsKey(method)) {
+            map = handlers.get(method);
+        }
+        map.put(path, handler);
+        handlers.put(method, map);
+    }
+
+    private long getIdByParsePath(String path) {
+        // easy way
+        return Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
     }
 }

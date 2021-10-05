@@ -29,22 +29,18 @@ public class MainServlet extends HttpServlet {
         addHandler("GET", PATH, (path, req, resp) -> {
             controller.all(resp);
             resp.setStatus(HttpServletResponse.SC_OK);
-            return true;
         });
         addHandler("GET", PATH_WITH_PARAMS, (path, req, resp) -> {
             controller.getById(getIdByParsePath(path), resp);
             resp.setStatus(HttpServletResponse.SC_OK);
-            return true;
         });
         addHandler("POST", PATH, (path, req, resp) -> {
             controller.save(req.getReader(), resp);
             resp.setStatus(HttpServletResponse.SC_OK);
-            return true;
         });
         addHandler("DELETE", PATH_WITH_PARAMS, (path, req, resp) -> {
             controller.removeById(getIdByParsePath(path), resp);
             resp.setStatus(HttpServletResponse.SC_OK);
-            return true;
         });
     }
 
@@ -63,11 +59,9 @@ public class MainServlet extends HttpServlet {
             }
 
             Handler handler = handlers.get(method).get(pathToFindTheHandler);
-            boolean isHandle = handler.handle(path, req, resp);
+            handler.handle(path, req, resp);
 
-            if (!isHandle) {
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

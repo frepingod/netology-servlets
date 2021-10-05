@@ -7,5 +7,5 @@ import java.io.IOException;
 @FunctionalInterface
 public interface Handler {
 
-    boolean handle(String path, HttpServletRequest req, HttpServletResponse resp) throws IOException;
+    void handle(String path, HttpServletRequest req, HttpServletResponse resp) throws IOException;
 }

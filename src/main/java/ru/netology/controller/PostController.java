@@ -32,8 +32,7 @@ public class PostController {
     }
 
     public void removeById(long id, HttpServletResponse response) throws IOException {
-        service.removeById(id);
-        deserializeRequestAndSerializeResponse(response, "post with id=" + id + " deleted successfully");
+        deserializeRequestAndSerializeResponse(response, service.removeById(id));
     }
 
     private <T> void deserializeRequestAndSerializeResponse(HttpServletResponse response, T data) throws IOException {

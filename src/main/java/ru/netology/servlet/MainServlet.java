@@ -2,6 +2,7 @@ package ru.netology.servlet;
 
 import ru.netology.Handler;
 import ru.netology.controller.PostController;
+import ru.netology.exception.NotFoundException;
 import ru.netology.repository.PostRepository;
 import ru.netology.repository.PostRepositoryImpl;
 import ru.netology.service.PostService;
@@ -31,16 +32,24 @@ public class MainServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
         });
         addHandler("GET", PATH_WITH_PARAMS, (path, req, resp) -> {
-            controller.getById(getIdByParsePath(path), resp);
-            resp.setStatus(HttpServletResponse.SC_OK);
+            try {
+                controller.getById(getIdByParsePath(path), resp);
+                resp.setStatus(HttpServletResponse.SC_OK);
+            } catch (NotFoundException e) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
         });
         addHandler("POST", PATH, (path, req, resp) -> {
             controller.save(req.getReader(), resp);
             resp.setStatus(HttpServletResponse.SC_OK);
         });
         addHandler("DELETE", PATH_WITH_PARAMS, (path, req, resp) -> {
-            controller.removeById(getIdByParsePath(path), resp);
-            resp.setStatus(HttpServletResponse.SC_OK);
+            try {
+                controller.removeById(getIdByParsePath(path), resp);
+                resp.setStatus(HttpServletResponse.SC_OK);
+            } catch (NotFoundException e) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
         });
     }
 
@@ -60,8 +69,6 @@ public class MainServlet extends HttpServlet {
 
             Handler handler = handlers.get(method).get(pathToFindTheHandler);
             handler.handle(path, req, resp);
-
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         } catch (Exception e) {
             e.printStackTrace();
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

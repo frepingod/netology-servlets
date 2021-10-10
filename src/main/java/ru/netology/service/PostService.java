@@ -26,7 +26,9 @@ public class PostService {
         return repository.save(post);
     }
 
-    public Post removeById(long id) {
-        return repository.removeById(id).orElseThrow(NotFoundException::new);
+    public void removeById(long id) {
+        if (!repository.removeById(id)) {
+            throw new NotFoundException();
+        }
     }
 }

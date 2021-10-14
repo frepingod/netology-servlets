@@ -40,11 +40,13 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public void removeById(long id) {
+    public boolean removeById(long id) {
         Post p = findPostById(id);
         if (p != null) {
             posts.remove(p);
+            return true;
         }
+        return false;
     }
 
     private Post findPostById(long id) {
